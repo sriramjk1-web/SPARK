@@ -189,7 +189,24 @@ def main():
             time.sleep(CHECK_EVERY_SEC)
         else:
             time.sleep(60)
+def run_once():
+    positions = load_positions()
+    t = now_ist()
+    ts = t.strftime("%Y-%m-%d %H:%M")
+    if market_is_open(t):
+        for name, ticker in SYMBOLS.items():
+            try:
+                process(name, fetch(ticker), positions, ts)
+            except Exception as e:
+                print(f"{name} error: {e}")
+        save_positions(positions)
+    if t.weekday() < 5 and t.time() >= dtime(15, 20) and positions:
+        square_off_all(positions, ts)
 
 
 if __name__ == "__main__":
-    main()
+    import sys
+    if "--once" in sys.argv:
+        run_once()
+    else:
+        main()
